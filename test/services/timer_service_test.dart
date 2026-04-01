@@ -77,7 +77,7 @@ void main() {
       expect(timerService.state.isActive, isFalse);
     });
 
-    test('processes pending rest complete flag on init', () async {
+    test('processes pending rest complete flag on init — counts break and starts session', () async {
       await prefs.setPendingRestComplete(true);
       final recent = DateTime.now()
           .subtract(const Duration(minutes: 5))
@@ -85,6 +85,8 @@ void main() {
       await prefs.setSessionStartTimestamp(recent);
       await timerService.init();
       expect(prefs.getPendingRestComplete(), isFalse);
+      expect(timerService.state.breaksTakenToday, greaterThan(0));
+      expect(timerService.state.isActive, isTrue);
     });
   });
 

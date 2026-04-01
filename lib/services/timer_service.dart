@@ -37,9 +37,8 @@ class TimerService extends ChangeNotifier {
   }
 
   Future<void> init() async {
-    if (_prefs.getPendingRestComplete()) {
-      await _prefs.setPendingRestComplete(false);
-    }
+    final hasPendingRest = _prefs.getPendingRestComplete();
+    if (hasPendingRest) await _prefs.setPendingRestComplete(false);
 
     final storedTs = _prefs.getSessionStartTimestamp();
     if (storedTs != null) {
@@ -73,6 +72,8 @@ class TimerService extends ChangeNotifier {
         completeRest();
       }
     });
+
+    if (hasPendingRest) await completeRest();
   }
 
   Future<void> startSession() async {

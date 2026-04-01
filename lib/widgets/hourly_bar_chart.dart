@@ -36,8 +36,8 @@ class HourlyBarChart extends StatelessWidget {
                     height: barHeight.clamp(2.0, maxHeight),
                     decoration: BoxDecoration(
                       color: minutes > 0
-                          ? AppColors.accent.withOpacity(0.8)
-                          : AppColors.topBar.withOpacity(0.2),
+                          ? AppColors.accent.withValues(alpha: 0.8)
+                          : AppColors.topBar.withValues(alpha: 0.2),
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(2),
                       ),

@@ -58,7 +58,7 @@ class _RingPainter extends CustomPainter {
 
     // Background ring
     final bgPaint = Paint()
-      ..color = AppColors.topBar.withOpacity(0.3)
+      ..color = AppColors.topBar.withValues(alpha: 0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
