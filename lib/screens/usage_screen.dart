@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:eye_health/models/usage_data.dart';
 import 'package:eye_health/services/timer_service.dart';
@@ -57,17 +58,19 @@ class _UsageScreenState extends State<UsageScreen> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : !_hasPermission
-              ? _PermissionPrompt(
-                  onGrant: () async {
-                    await widget.usageStatsService.openPermissionSettings();
-                    await _load();
-                  },
-                )
-              : _UsageContent(
-                  data: _data ?? UsageData.empty(),
-                  timerService: widget.timerService,
-                ),
+          : Platform.isIOS
+              ? _IosUsageContent(timerService: widget.timerService)
+              : !_hasPermission
+                  ? _PermissionPrompt(
+                      onGrant: () async {
+                        await widget.usageStatsService.openPermissionSettings();
+                        await _load();
+                      },
+                    )
+                  : _UsageContent(
+                      data: _data ?? UsageData.empty(),
+                      timerService: widget.timerService,
+                    ),
     );
   }
 }
@@ -123,6 +126,54 @@ class _UsageContent extends StatelessWidget {
                   const SizedBox(height: 12),
                   HourlyBarChart(hourlyMinutes: data.hourlyMinutes),
                 ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          ListenableBuilder(
+            listenable: timerService,
+            builder: (context, _) {
+              final breaks = timerService.state.breaksTakenToday;
+              return Card(
+                child: ListTile(
+                  leading: const Icon(Icons.visibility, color: AppColors.accent),
+                  title: Text(
+                    '$breaks rest ${breaks == 1 ? 'break' : 'breaks'} taken today',
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: const Text('Each break: 20 sec at 20 feet'),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _IosUsageContent extends StatelessWidget {
+  final TimerService timerService;
+
+  const _IosUsageContent({required this.timerService});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Session tracking starts when you open the app. '
+                'Full screen time data is not available on iOS.',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: Colors.grey.shade700),
               ),
             ),
           ),

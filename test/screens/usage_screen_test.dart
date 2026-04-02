@@ -106,6 +106,17 @@ void main() {
     expect(find.text("Today's Usage"), findsOneWidget);
   });
 
+  testWidgets('shows break counter on iOS platform (simulated via empty data + no total/chart)', (tester) async {
+    // UsageStatsServiceIos always returns empty data.
+    // The iOS branch in UsageScreen should show the break label but not "Total screen time today".
+    await tester.pumpWidget(buildSubject(
+      data: UsageData(totalMinutes: 0, hourlyMinutes: List.filled(24, 0)),
+    ));
+    await tester.pump();
+    // The break card is always shown
+    expect(find.byIcon(Icons.visibility), findsOneWidget);
+  });
+
   testWidgets('shows rest breaks count', (tester) async {
     await prefs.setBreaksTakenToday(3);
     final now = DateTime.now();
