@@ -24,6 +24,15 @@ class FakeNotificationService implements AbstractNotificationService {
   }
 
   @override
+  Future<void> showOngoingTimer(int sinceTimestamp) async {}
+
+  @override
+  Future<void> pauseOngoingTimer(int elapsedMs) async {}
+
+  @override
+  Future<void> cancelOngoingTimer() async {}
+
+  @override
   Stream<String> get actionStream => _controller.stream;
 
   void emitAction(String action) => _controller.add(action);
