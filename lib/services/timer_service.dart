@@ -50,8 +50,9 @@ class TimerService extends ChangeNotifier {
           breaksTakenToday: _getBreaksForToday(),
           breaksDate: _prefs.getBreaksDate(),
         );
-        _startTicker();
+        _restNotified = false;
         await _notifications.showOngoingTimer(storedTs);
+        _startTicker();
       } else {
         await _prefs.clearSessionStartTimestamp();
         _state = SessionState(
