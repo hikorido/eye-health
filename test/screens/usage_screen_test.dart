@@ -6,7 +6,7 @@ import 'package:eye_health/models/usage_data.dart';
 import 'package:eye_health/services/preferences_service.dart';
 import 'package:eye_health/services/timer_service.dart';
 import 'package:eye_health/services/abstract_notification_service.dart';
-import 'package:eye_health/services/usage_stats_service.dart';
+import 'package:eye_health/services/abstract_usage_stats_service.dart';
 import 'package:eye_health/screens/usage_screen.dart';
 import 'package:eye_health/theme/app_theme.dart';
 
@@ -19,7 +19,7 @@ class FakeNotificationService implements AbstractNotificationService {
   void dispose() => _c.close();
 }
 
-class FakeUsageStatsService extends UsageStatsService {
+class FakeUsageStatsService implements AbstractUsageStatsService {
   final UsageData _data;
   final bool _hasPermission;
 

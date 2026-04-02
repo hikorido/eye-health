@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:eye_health/models/usage_data.dart';
 import 'package:eye_health/services/timer_service.dart';
-import 'package:eye_health/services/usage_stats_service.dart';
+import 'package:eye_health/services/abstract_usage_stats_service.dart';
 import 'package:eye_health/theme/app_theme.dart';
 import 'package:eye_health/widgets/hourly_bar_chart.dart';
 
 class UsageScreen extends StatefulWidget {
-  final UsageStatsService usageStatsService;
+  final AbstractUsageStatsService usageStatsService;
   final TimerService timerService;
 
   const UsageScreen({

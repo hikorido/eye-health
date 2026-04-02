@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:eye_health/models/usage_data.dart';
-import 'package:eye_health/services/usage_stats_service.dart';
+import 'package:eye_health/services/usage_stats_service_android.dart';
 
 void main() {
-  group('UsageStatsService.buildUsageData()', () {
+  group('UsageStatsServiceAndroid.buildUsageData()', () {
     test('returns UsageData.empty() when no events', () {
-      final data = UsageStatsService.buildUsageData(
+      final data = UsageStatsServiceAndroid.buildUsageData(
         totalForegroundMs: 0,
         events: [],
       );
@@ -14,18 +14,17 @@ void main() {
     });
 
     test('calculates total minutes from totalForegroundMs', () {
-      final data = UsageStatsService.buildUsageData(
-        totalForegroundMs: 3600000, // 60 minutes
+      final data = UsageStatsServiceAndroid.buildUsageData(
+        totalForegroundMs: 3600000,
         events: [],
       );
       expect(data.totalMinutes, equals(60));
     });
 
     test('attributes usage to correct hour bucket', () {
-      // 09:00 → 09:30 = 30 minutes in hour 9
       final start = DateTime(2026, 4, 1, 9, 0, 0).millisecondsSinceEpoch;
       final end = DateTime(2026, 4, 1, 9, 30, 0).millisecondsSinceEpoch;
-      final data = UsageStatsService.buildUsageData(
+      final data = UsageStatsServiceAndroid.buildUsageData(
         totalForegroundMs: end - start,
         events: [
           {'timeStamp': start.toString(), 'eventType': '1'},
@@ -36,10 +35,9 @@ void main() {
     });
 
     test('splits usage across hour boundaries', () {
-      // 10:50 → 11:10 = 10 minutes in hour 10, 10 minutes in hour 11
       final start = DateTime(2026, 4, 1, 10, 50, 0).millisecondsSinceEpoch;
       final end = DateTime(2026, 4, 1, 11, 10, 0).millisecondsSinceEpoch;
-      final data = UsageStatsService.buildUsageData(
+      final data = UsageStatsServiceAndroid.buildUsageData(
         totalForegroundMs: end - start,
         events: [
           {'timeStamp': start.toString(), 'eventType': '1'},
@@ -52,14 +50,12 @@ void main() {
 
     test('ignores unpaired MOVE_TO_FOREGROUND at end of list', () {
       final start = DateTime(2026, 4, 1, 14, 0, 0).millisecondsSinceEpoch;
-      final data = UsageStatsService.buildUsageData(
+      final data = UsageStatsServiceAndroid.buildUsageData(
         totalForegroundMs: 0,
         events: [
           {'timeStamp': start.toString(), 'eventType': '1'},
-          // No MOVE_TO_BACKGROUND — session still open
         ],
       );
-      // No crash; unpaired session attributed from start to now (approximately)
       expect(data.hourlyMinutes[14], greaterThanOrEqualTo(0));
     });
   });

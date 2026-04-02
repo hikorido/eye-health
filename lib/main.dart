@@ -6,7 +6,8 @@ import 'package:eye_health/services/preferences_service.dart';
 import 'package:eye_health/services/timer_service.dart';
 import 'package:eye_health/services/abstract_unlock_service.dart';
 import 'package:eye_health/services/unlock_service_android.dart';
-import 'package:eye_health/services/usage_stats_service.dart';
+import 'package:eye_health/services/abstract_usage_stats_service.dart';
+import 'package:eye_health/services/usage_stats_service_android.dart';
 import 'package:eye_health/app.dart';
 
 void main() async {
@@ -30,7 +31,7 @@ void main() async {
   final AbstractUnlockService unlockService = UnlockServiceAndroid(timerService: timer);
   unlockService.startListening();
 
-  final usageStats = UsageStatsService();
+  final AbstractUsageStatsService usageStats = UsageStatsServiceAndroid();
 
   runApp(EyeHealthApp(
     timerService: timer,

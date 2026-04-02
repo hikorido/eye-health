@@ -1,9 +1,9 @@
 import 'package:usage_stats/usage_stats.dart';
 import 'package:eye_health/models/usage_data.dart';
+import 'package:eye_health/services/abstract_usage_stats_service.dart';
 
-class UsageStatsService {
-  /// Fetches today's usage data from the system.
-  /// Returns [UsageData.empty()] if permission is not granted.
+class UsageStatsServiceAndroid implements AbstractUsageStatsService {
+  @override
   Future<UsageData> fetchTodayUsage() async {
     try {
       final now = DateTime.now();
@@ -31,8 +31,6 @@ class UsageStatsService {
     }
   }
 
-  /// Pure function — builds [UsageData] from raw event maps.
-  /// Extracted as static so it can be unit-tested without the plugin.
   static UsageData buildUsageData({
     required int totalForegroundMs,
     required List<Map<String, dynamic>> events,
@@ -53,7 +51,6 @@ class UsageStatsService {
       }
     }
 
-    // Attribute open session up to now.
     if (openTs != null) {
       _attributeRange(hourlyMs, openTs, now);
     }
@@ -64,7 +61,6 @@ class UsageStatsService {
     );
   }
 
-  /// Splits the time range [startMs, endMs) into per-hour minute buckets.
   static void _attributeRange(List<int> buckets, int startMs, int endMs) {
     var cursor = startMs;
     while (cursor < endMs) {
@@ -78,12 +74,12 @@ class UsageStatsService {
     }
   }
 
-  /// Returns true if the app has PACKAGE_USAGE_STATS permission.
+  @override
   Future<bool> hasPermission() async {
     return await UsageStats.checkUsagePermission() ?? false;
   }
 
-  /// Opens the system Usage Access settings screen.
+  @override
   Future<void> openPermissionSettings() async {
     await UsageStats.grantUsagePermission();
   }
