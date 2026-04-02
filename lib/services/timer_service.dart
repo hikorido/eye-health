@@ -17,6 +17,7 @@ class TimerService extends ChangeNotifier {
   );
 
   Timer? _ticker;
+  bool _restNotified = false;
   StreamSubscription<String>? _actionSub;
 
   TimerService({
@@ -42,8 +43,7 @@ class TimerService extends ChangeNotifier {
 
     final storedTs = _prefs.getSessionStartTimestamp();
     if (storedTs != null) {
-      final age =
-          DateTime.now().millisecondsSinceEpoch - storedTs;
+      final age = DateTime.now().millisecondsSinceEpoch - storedTs;
       if (age < _sessionDuration.inMilliseconds) {
         _state = SessionState(
           startTimestamp: storedTs,
@@ -51,6 +51,7 @@ class TimerService extends ChangeNotifier {
           breaksDate: _prefs.getBreaksDate(),
         );
         _startTicker();
+        await _notifications.showOngoingTimer(storedTs);
       } else {
         await _prefs.clearSessionStartTimestamp();
         _state = SessionState(
@@ -58,6 +59,9 @@ class TimerService extends ChangeNotifier {
           breaksTakenToday: _getBreaksForToday(),
           breaksDate: _prefs.getBreaksDate(),
         );
+        final elapsed = DateTime.now().millisecondsSinceEpoch - storedTs;
+        await _notifications.pauseOngoingTimer(elapsed);
+        _restNotified = true;
       }
     } else {
       _state = SessionState(
@@ -84,6 +88,8 @@ class TimerService extends ChangeNotifier {
     _state = _state.copyWith(startTimestamp: ts);
     await _notifications.scheduleReminder(
         now.add(_sessionDuration));
+    await _notifications.showOngoingTimer(ts);
+    _restNotified = false;
     _startTicker();
     notifyListeners();
   }
@@ -121,8 +127,13 @@ class TimerService extends ChangeNotifier {
 
   void _startTicker() {
     _ticker?.cancel();
-    _ticker =
-        Timer.periodic(const Duration(seconds: 1), (_) {
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) async {
+      if (remainingSeconds == 0 && !_restNotified && _state.isActive) {
+        _restNotified = true;
+        final elapsed =
+            DateTime.now().millisecondsSinceEpoch - _state.startTimestamp!;
+        await _notifications.pauseOngoingTimer(elapsed);
+      }
       notifyListeners();
     });
   }
