@@ -123,7 +123,7 @@ class NotificationServiceAndroid implements AbstractNotificationService {
   }
 
   @override
-  Future<void> pauseOngoingTimer(int elapsedMs) async {
+  Future<void> pauseOngoingTimer(int _elapsedMs) async {
     const androidDetails = AndroidNotificationDetails(
       _ongoingChannelId,
       _ongoingChannelName,

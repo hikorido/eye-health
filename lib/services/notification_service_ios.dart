@@ -81,7 +81,7 @@ class NotificationServiceIos implements AbstractNotificationService {
   Future<void> showOngoingTimer(int sinceTimestamp) async {}
 
   @override
-  Future<void> pauseOngoingTimer(int elapsedMs) async {}
+  Future<void> pauseOngoingTimer(int _elapsedMs) async {}
 
   @override
   Future<void> cancelOngoingTimer() async {}
