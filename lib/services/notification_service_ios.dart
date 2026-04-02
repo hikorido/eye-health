@@ -23,7 +23,7 @@ class NotificationServiceIos implements AbstractNotificationService {
 
   @override
   Future<void> init() async {
-    const darwinInit = DarwinInitializationSettings(
+    final darwinInit = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
@@ -40,7 +40,7 @@ class NotificationServiceIos implements AbstractNotificationService {
         ),
       ],
     );
-    const initSettings = InitializationSettings(darwin: darwinInit);
+    final initSettings = InitializationSettings(iOS: darwinInit);
 
     await _plugin.initialize(
       initSettings,
