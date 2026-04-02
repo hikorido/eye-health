@@ -9,6 +9,9 @@ const _channelId = 'eye_health_reminders';
 const _channelName = 'Eye Health Reminders';
 const _actionIdDoneResting = 'done_resting';
 const _keyPendingRest = '_pending_rest_complete';
+const _ongoingNotificationId = 2;
+const _ongoingChannelId = 'eye_health_ongoing';
+const _ongoingChannelName = 'Eye Health Ongoing';
 
 @pragma('vm:entry-point')
 void onBackgroundNotificationResponse(NotificationResponse response) async {
@@ -48,6 +51,17 @@ class NotificationServiceAndroid implements AbstractNotificationService {
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(androidChannel);
+
+    const ongoingChannel = AndroidNotificationChannel(
+      _ongoingChannelId,
+      _ongoingChannelName,
+      description: 'Live timer showing time since last break',
+      importance: Importance.low,
+    );
+    await _plugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(ongoingChannel);
   }
 
   @override
@@ -86,13 +100,52 @@ class NotificationServiceAndroid implements AbstractNotificationService {
   }
 
   @override
-  Future<void> showOngoingTimer(int sinceTimestamp) async {}
+  Future<void> showOngoingTimer(int sinceTimestamp) async {
+    final androidDetails = AndroidNotificationDetails(
+      _ongoingChannelId,
+      _ongoingChannelName,
+      channelDescription: 'Live timer showing time since last break',
+      importance: Importance.low,
+      priority: Priority.low,
+      ongoing: true,
+      autoCancel: false,
+      usesChronometer: true,
+      when: sinceTimestamp,
+      chronometerCountsDown: false,
+    );
+    final details = NotificationDetails(android: androidDetails);
+    await _plugin.show(
+      _ongoingNotificationId,
+      'Eye Health',
+      'Time since last break',
+      details,
+    );
+  }
 
   @override
-  Future<void> pauseOngoingTimer(int elapsedMs) async {}
+  Future<void> pauseOngoingTimer(int elapsedMs) async {
+    const androidDetails = AndroidNotificationDetails(
+      _ongoingChannelId,
+      _ongoingChannelName,
+      channelDescription: 'Live timer showing time since last break',
+      importance: Importance.low,
+      priority: Priority.low,
+      ongoing: true,
+      autoCancel: false,
+    );
+    const details = NotificationDetails(android: androidDetails);
+    await _plugin.show(
+      _ongoingNotificationId,
+      'Time to rest!',
+      'Look 20 feet away for 20 seconds.',
+      details,
+    );
+  }
 
   @override
-  Future<void> cancelOngoingTimer() async {}
+  Future<void> cancelOngoingTimer() async {
+    await _plugin.cancel(_ongoingNotificationId);
+  }
 
   @override
   Stream<String> get actionStream => _controller.stream;
