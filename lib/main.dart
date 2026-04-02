@@ -4,7 +4,8 @@ import 'package:workmanager/workmanager.dart';
 import 'package:eye_health/services/notification_service.dart';
 import 'package:eye_health/services/preferences_service.dart';
 import 'package:eye_health/services/timer_service.dart';
-import 'package:eye_health/services/unlock_service.dart';
+import 'package:eye_health/services/abstract_unlock_service.dart';
+import 'package:eye_health/services/unlock_service_android.dart';
 import 'package:eye_health/services/usage_stats_service.dart';
 import 'package:eye_health/app.dart';
 
@@ -26,7 +27,7 @@ void main() async {
   );
   await timer.init();
 
-  final unlockService = UnlockService(timerService: timer);
+  final AbstractUnlockService unlockService = UnlockServiceAndroid(timerService: timer);
   unlockService.startListening();
 
   final usageStats = UsageStatsService();
