@@ -9,6 +9,9 @@ class FakeNotificationService implements AbstractNotificationService {
   final _controller = StreamController<String>.broadcast();
   DateTime? scheduledAt;
   bool cancelCalled = false;
+  int? ongoingTimerSince;
+  int? pausedElapsedMs;
+  bool cancelOngoingCalled = false;
 
   @override
   Future<void> init() async {}
@@ -24,13 +27,19 @@ class FakeNotificationService implements AbstractNotificationService {
   }
 
   @override
-  Future<void> showOngoingTimer(int sinceTimestamp) async {}
+  Future<void> showOngoingTimer(int sinceTimestamp) async {
+    ongoingTimerSince = sinceTimestamp;
+  }
 
   @override
-  Future<void> pauseOngoingTimer(int elapsedMs) async {}
+  Future<void> pauseOngoingTimer(int elapsedMs) async {
+    pausedElapsedMs = elapsedMs;
+  }
 
   @override
-  Future<void> cancelOngoingTimer() async {}
+  Future<void> cancelOngoingTimer() async {
+    cancelOngoingCalled = true;
+  }
 
   @override
   Stream<String> get actionStream => _controller.stream;
@@ -181,6 +190,47 @@ void main() {
     test('returns 0 for no active session', () async {
       await timerService.init();
       expect(timerService.remainingSeconds, equals(0));
+    });
+  });
+
+  group('Ongoing timer notification', () {
+    test('startSession() calls showOngoingTimer with the session timestamp',
+        () async {
+      await timerService.init();
+      await timerService.startSession();
+      expect(notifications.ongoingTimerSince, isNotNull);
+      expect(
+        notifications.ongoingTimerSince,
+        closeTo(DateTime.now().millisecondsSinceEpoch, 1000),
+      );
+    });
+
+    test('init() with active session calls showOngoingTimer', () async {
+      final recent = DateTime.now()
+          .subtract(const Duration(minutes: 5))
+          .millisecondsSinceEpoch;
+      await prefs.setSessionStartTimestamp(recent);
+      await timerService.init();
+      expect(notifications.ongoingTimerSince, equals(recent));
+    });
+
+    test('init() with expired session calls pauseOngoingTimer', () async {
+      final stale = DateTime.now()
+          .subtract(const Duration(minutes: 25))
+          .millisecondsSinceEpoch;
+      await prefs.setSessionStartTimestamp(stale);
+      await timerService.init();
+      expect(notifications.pausedElapsedMs, isNotNull);
+    });
+
+    test('completeRest() calls showOngoingTimer via the new startSession()',
+        () async {
+      await timerService.init();
+      await timerService.startSession();
+      // Reset tracking to detect the call from completeRest → startSession
+      notifications.ongoingTimerSince = null;
+      await timerService.completeRest();
+      expect(notifications.ongoingTimerSince, isNotNull);
     });
   });
 }
