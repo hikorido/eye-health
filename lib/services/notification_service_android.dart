@@ -111,7 +111,6 @@ class NotificationServiceAndroid implements AbstractNotificationService {
       autoCancel: false,
       usesChronometer: true,
       when: sinceTimestamp,
-      chronometerCountsDown: false,
     );
     final details = NotificationDetails(android: androidDetails);
     await _plugin.show(
