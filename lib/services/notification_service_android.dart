@@ -10,8 +10,6 @@ const _channelName = 'Eye Health Reminders';
 const _actionIdDoneResting = 'done_resting';
 const _keyPendingRest = '_pending_rest_complete';
 
-/// Top-level handler for background/killed-app notification action responses.
-/// Writes a flag; TimerService.init() picks it up on next launch.
 @pragma('vm:entry-point')
 void onBackgroundNotificationResponse(NotificationResponse response) async {
   if (response.actionId == _actionIdDoneResting) {
@@ -20,7 +18,7 @@ void onBackgroundNotificationResponse(NotificationResponse response) async {
   }
 }
 
-class NotificationService implements AbstractNotificationService {
+class NotificationServiceAndroid implements AbstractNotificationService {
   final _plugin = FlutterLocalNotificationsPlugin();
   final _controller = StreamController<String>.broadcast();
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:workmanager/workmanager.dart';
-import 'package:eye_health/services/notification_service.dart';
+import 'package:eye_health/services/notification_service_android.dart';
 import 'package:eye_health/services/preferences_service.dart';
 import 'package:eye_health/services/timer_service.dart';
 import 'package:eye_health/services/abstract_unlock_service.dart';
@@ -19,7 +19,7 @@ void main() async {
   final prefs = PreferencesService();
   await prefs.init();
 
-  final notifications = NotificationService();
+  final notifications = NotificationServiceAndroid();
   await notifications.init();
 
   final timer = TimerService(
