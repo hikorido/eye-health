@@ -1,13 +1,18 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:workmanager/workmanager.dart';
+import 'package:eye_health/services/abstract_notification_service.dart';
+import 'package:eye_health/services/abstract_unlock_service.dart';
+import 'package:eye_health/services/abstract_usage_stats_service.dart';
 import 'package:eye_health/services/notification_service_android.dart';
+import 'package:eye_health/services/notification_service_ios.dart';
+import 'package:eye_health/services/unlock_service_android.dart';
+import 'package:eye_health/services/unlock_service_ios.dart';
+import 'package:eye_health/services/usage_stats_service_android.dart';
+import 'package:eye_health/services/usage_stats_service_ios.dart';
 import 'package:eye_health/services/preferences_service.dart';
 import 'package:eye_health/services/timer_service.dart';
-import 'package:eye_health/services/abstract_unlock_service.dart';
-import 'package:eye_health/services/unlock_service_android.dart';
-import 'package:eye_health/services/abstract_usage_stats_service.dart';
-import 'package:eye_health/services/usage_stats_service_android.dart';
 import 'package:eye_health/app.dart';
 
 void main() async {
@@ -19,7 +24,9 @@ void main() async {
   final prefs = PreferencesService();
   await prefs.init();
 
-  final notifications = NotificationServiceAndroid();
+  final AbstractNotificationService notifications = Platform.isIOS
+      ? NotificationServiceIos()
+      : NotificationServiceAndroid();
   await notifications.init();
 
   final timer = TimerService(
@@ -28,10 +35,14 @@ void main() async {
   );
   await timer.init();
 
-  final AbstractUnlockService unlockService = UnlockServiceAndroid(timerService: timer);
+  final AbstractUnlockService unlockService = Platform.isIOS
+      ? UnlockServiceIos(timerService: timer)
+      : UnlockServiceAndroid(timerService: timer);
   unlockService.startListening();
 
-  final AbstractUsageStatsService usageStats = UsageStatsServiceAndroid();
+  final AbstractUsageStatsService usageStats = Platform.isIOS
+      ? UsageStatsServiceIos()
+      : UsageStatsServiceAndroid();
 
   runApp(EyeHealthApp(
     timerService: timer,
