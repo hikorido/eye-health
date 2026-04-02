@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:eye_health/services/timer_service.dart';
 import 'package:eye_health/theme/app_theme.dart';
@@ -124,10 +125,14 @@ class _HintText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String inactiveHint = Platform.isAndroid
+        ? 'Unlock your phone to start a new 20-minute session.'
+        : 'Open the app to start a new 20-minute session.';
+
     return Text(
       isActive
           ? 'A notification will appear when it\'s time to rest.\nTap "Done Resting" to start a new session.'
-          : 'Unlock your phone to start a new 20-minute session.',
+          : inactiveHint,
       textAlign: TextAlign.center,
       style: Theme.of(context)
           .textTheme

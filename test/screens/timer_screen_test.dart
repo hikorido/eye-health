@@ -83,6 +83,17 @@ void main() {
     fakeNotifications.dispose();
   });
 
+  testWidgets('shows "open the app" hint when no session (platform-neutral text)', (tester) async {
+    await tester.pumpWidget(buildSubject());
+    await tester.pump();
+    // The hint should not contain Android-specific "Unlock your phone" text
+    // when tested in the Flutter test environment (non-Android platform).
+    // On non-Android: hint reads "Open the app to start..."
+    expect(find.textContaining('Open the app'), findsOneWidget);
+    timerService.dispose();
+    fakeNotifications.dispose();
+  });
+
   testWidgets('countdown updates after one second tick', (tester) async {
     await timerService.startSession();
     await tester.pumpWidget(buildSubject());
