@@ -18,6 +18,7 @@ class TimerService extends ChangeNotifier {
 
   Timer? _ticker;
   bool _restNotified = false;
+  bool _awaitingRestConfirmation = false;
   StreamSubscription<String>? _actionSub;
 
   TimerService({
@@ -51,6 +52,7 @@ class TimerService extends ChangeNotifier {
           breaksDate: _prefs.getBreaksDate(),
         );
         _restNotified = false;
+        _awaitingRestConfirmation = false;
         await _notifications.showOngoingTimer(storedTs);
         _startTicker();
       } else {
@@ -63,6 +65,7 @@ class TimerService extends ChangeNotifier {
         final elapsed = DateTime.now().millisecondsSinceEpoch - storedTs;
         await _notifications.pauseOngoingTimer(elapsed);
         _restNotified = true;
+        _awaitingRestConfirmation = true;
       }
     } else {
       _state = SessionState(
@@ -70,6 +73,7 @@ class TimerService extends ChangeNotifier {
         breaksTakenToday: _getBreaksForToday(),
         breaksDate: _prefs.getBreaksDate(),
       );
+      _awaitingRestConfirmation = false;
     }
 
     _actionSub = _notifications.actionStream.listen((action) {
@@ -82,7 +86,18 @@ class TimerService extends ChangeNotifier {
   }
 
   Future<void> startSession() async {
-    if (_state.isActive) return;
+    await _startOrResetSession(resetIfActive: false);
+  }
+
+  Future<void> _startOrResetSession({required bool resetIfActive}) async {
+    if (_awaitingRestConfirmation) return;
+    if (_state.isActive && !resetIfActive) return;
+
+    _ticker?.cancel();
+    _ticker = null;
+
+    await _notifications.cancelReminder();
+
     final now = DateTime.now();
     final ts = now.millisecondsSinceEpoch;
     await _prefs.setSessionStartTimestamp(ts);
@@ -91,6 +106,7 @@ class TimerService extends ChangeNotifier {
         now.add(_sessionDuration));
     await _notifications.showOngoingTimer(ts);
     _restNotified = false;
+    _awaitingRestConfirmation = false;
     _startTicker();
     notifyListeners();
   }
@@ -110,6 +126,7 @@ class TimerService extends ChangeNotifier {
     }
     await _prefs.setBreaksTakenToday(breaks);
 
+    _awaitingRestConfirmation = false;
     _state = SessionState(
       startTimestamp: null,
       breaksTakenToday: breaks,
@@ -121,9 +138,8 @@ class TimerService extends ChangeNotifier {
   }
 
   Future<void> onUnlock() async {
-    if (!_state.isActive) {
-      await startSession();
-    }
+    if (_awaitingRestConfirmation) return;
+    await _startOrResetSession(resetIfActive: true);
   }
 
   void _startTicker() {
@@ -131,9 +147,17 @@ class TimerService extends ChangeNotifier {
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) async {
       if (remainingSeconds == 0 && !_restNotified && _state.isActive) {
         _restNotified = true;
+        _awaitingRestConfirmation = true;
         final elapsed =
             DateTime.now().millisecondsSinceEpoch - _state.startTimestamp!;
+
+        _ticker?.cancel();
+        _ticker = null;
+        await _prefs.clearSessionStartTimestamp();
+        _state = _state.copyWith(startTimestamp: null);
+
         await _notifications.pauseOngoingTimer(elapsed);
+        notifyListeners();
       }
       notifyListeners();
     });

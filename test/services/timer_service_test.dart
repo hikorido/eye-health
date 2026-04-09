@@ -170,12 +170,45 @@ void main() {
       expect(timerService.state.isActive, isTrue);
     });
 
-    test('does not restart session if already active', () async {
+    test('resets session if already active and not awaiting rest', () async {
       await timerService.init();
       await timerService.startSession();
-      final ts = prefs.getSessionStartTimestamp();
+      final ts = prefs.getSessionStartTimestamp()!;
+      await Future<void>.delayed(const Duration(milliseconds: 5));
       await timerService.onUnlock();
-      expect(prefs.getSessionStartTimestamp(), equals(ts));
+      final newTs = prefs.getSessionStartTimestamp()!;
+      expect(newTs, greaterThan(ts));
+    });
+
+    test('does not restart session while awaiting done_resting after timeout',
+        () async {
+      final stale = DateTime.now()
+          .subtract(const Duration(minutes: 25))
+          .millisecondsSinceEpoch;
+      await prefs.setSessionStartTimestamp(stale);
+      await timerService.init();
+      expect(timerService.state.isActive, isFalse);
+
+      await timerService.onUnlock();
+
+      expect(timerService.state.isActive, isFalse);
+      expect(prefs.getSessionStartTimestamp(), isNull);
+    });
+
+    test('done_resting unblocks and starts a new session after timeout',
+        () async {
+      final stale = DateTime.now()
+          .subtract(const Duration(minutes: 25))
+          .millisecondsSinceEpoch;
+      await prefs.setSessionStartTimestamp(stale);
+      await timerService.init();
+      expect(timerService.state.isActive, isFalse);
+
+      notifications.emitAction('done_resting');
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      expect(timerService.state.isActive, isTrue);
+      expect(prefs.getSessionStartTimestamp(), isNotNull);
     });
   });
 
