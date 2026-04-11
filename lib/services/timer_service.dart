@@ -97,19 +97,21 @@ class TimerService extends ChangeNotifier {
     _ticker?.cancel();
     _ticker = null;
 
-    await _notifications.cancelReminder();
+    await _safeNotify(() => _notifications.cancelReminder());
 
     final now = DateTime.now();
     final ts = now.millisecondsSinceEpoch;
     await _prefs.setSessionStartTimestamp(ts);
     _state = _state.copyWith(startTimestamp: ts);
-    await _notifications.scheduleReminder(
-        now.add(_sessionDuration));
-    await _notifications.showOngoingTimer(ts);
     _restNotified = false;
     _awaitingRestConfirmation = false;
     _startTicker();
     notifyListeners();
+
+    await _safeNotify(
+      () => _notifications.scheduleReminder(now.add(_sessionDuration)),
+    );
+    await _safeNotify(() => _notifications.showOngoingTimer(ts));
   }
 
   Future<void> completeRest() async {
@@ -189,5 +191,13 @@ class TimerService extends ChangeNotifier {
     _ticker?.cancel();
     _actionSub?.cancel();
     super.dispose();
+  }
+
+  Future<void> _safeNotify(Future<void> Function() action) async {
+    try {
+      await action();
+    } catch (e) {
+      debugPrint('Notification call failed: $e');
+    }
   }
 }

@@ -10,6 +10,9 @@ class FakeNotificationService implements AbstractNotificationService {
   DateTime? scheduledAt;
   bool cancelCalled = false;
   bool unlockResetMessageCalled = false;
+  bool throwOnCancelReminder = false;
+  bool throwOnScheduleReminder = false;
+  bool throwOnShowOngoing = false;
   int? ongoingTimerSince;
   int? pausedElapsedMs;
   bool cancelOngoingCalled = false;
@@ -19,11 +22,17 @@ class FakeNotificationService implements AbstractNotificationService {
 
   @override
   Future<void> scheduleReminder(DateTime at) async {
+    if (throwOnScheduleReminder) {
+      throw Exception('schedule reminder failed');
+    }
     scheduledAt = at;
   }
 
   @override
   Future<void> cancelReminder() async {
+    if (throwOnCancelReminder) {
+      throw Exception('cancel reminder failed');
+    }
     cancelCalled = true;
   }
 
@@ -34,6 +43,9 @@ class FakeNotificationService implements AbstractNotificationService {
 
   @override
   Future<void> showOngoingTimer(int sinceTimestamp) async {
+    if (throwOnShowOngoing) {
+      throw Exception('show ongoing failed');
+    }
     ongoingTimerSince = sinceTimestamp;
   }
 
@@ -144,6 +156,18 @@ void main() {
       final firstTimestamp = prefs.getSessionStartTimestamp();
       await timerService.startSession();
       expect(prefs.getSessionStartTimestamp(), equals(firstTimestamp));
+    });
+
+    test('starts session even if notification APIs fail', () async {
+      notifications.throwOnCancelReminder = true;
+      notifications.throwOnScheduleReminder = true;
+      notifications.throwOnShowOngoing = true;
+
+      await timerService.init();
+      await timerService.startSession();
+
+      expect(timerService.state.isActive, isTrue);
+      expect(prefs.getSessionStartTimestamp(), isNotNull);
     });
   });
 
