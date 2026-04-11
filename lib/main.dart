@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -39,7 +40,6 @@ void main() async {
       ? UnlockServiceIos(timerService: timer)
       : UnlockServiceAndroid(timerService: timer);
   unlockService.startListening();
-  await timer.onUnlock();
 
   final AbstractUsageStatsService usageStats = Platform.isIOS
       ? UsageStatsServiceIos()
@@ -49,6 +49,17 @@ void main() async {
     timerService: timer,
     usageStatsService: usageStats,
   ));
+
+  // Do not block first render on notification/platform calls.
+  unawaited(_triggerInitialSessionStart(timer));
+}
+
+Future<void> _triggerInitialSessionStart(TimerService timer) async {
+  try {
+    await timer.onUnlock();
+  } catch (e) {
+    debugPrint('Initial timer start failed: $e');
+  }
 }
 
 @pragma('vm:entry-point')
