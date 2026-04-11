@@ -9,6 +9,7 @@ class FakeNotificationService implements AbstractNotificationService {
   final _controller = StreamController<String>.broadcast();
   DateTime? scheduledAt;
   bool cancelCalled = false;
+  bool unlockResetMessageCalled = false;
   int? ongoingTimerSince;
   int? pausedElapsedMs;
   bool cancelOngoingCalled = false;
@@ -24,6 +25,11 @@ class FakeNotificationService implements AbstractNotificationService {
   @override
   Future<void> cancelReminder() async {
     cancelCalled = true;
+  }
+
+  @override
+  Future<void> showUnlockResetMessage() async {
+    unlockResetMessageCalled = true;
   }
 
   @override
@@ -178,6 +184,7 @@ void main() {
       await timerService.onUnlock();
       final newTs = prefs.getSessionStartTimestamp()!;
       expect(newTs, greaterThan(ts));
+      expect(notifications.unlockResetMessageCalled, isTrue);
     });
 
     test('does not restart session while awaiting done_resting after timeout',
@@ -193,6 +200,18 @@ void main() {
 
       expect(timerService.state.isActive, isFalse);
       expect(prefs.getSessionStartTimestamp(), isNull);
+      expect(notifications.unlockResetMessageCalled, isFalse);
+    });
+
+    test('does not show reset message when starting from inactive state',
+        () async {
+      await timerService.init();
+      expect(timerService.state.isActive, isFalse);
+
+      await timerService.onUnlock();
+
+      expect(timerService.state.isActive, isTrue);
+      expect(notifications.unlockResetMessageCalled, isFalse);
     });
 
     test('done_resting unblocks and starts a new session after timeout',

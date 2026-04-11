@@ -12,6 +12,7 @@ const _keyPendingRest = '_pending_rest_complete';
 const _ongoingNotificationId = 2;
 const _ongoingChannelId = 'eye_health_ongoing';
 const _ongoingChannelName = 'Eye Health Ongoing';
+const _unlockResetNotificationId = 3;
 
 @pragma('vm:entry-point')
 void onBackgroundNotificationResponse(NotificationResponse response) async {
@@ -97,6 +98,25 @@ class NotificationServiceAndroid implements AbstractNotificationService {
   @override
   Future<void> cancelReminder() async {
     await _plugin.cancel(_notificationId);
+  }
+
+  @override
+  Future<void> showUnlockResetMessage() async {
+    const androidDetails = AndroidNotificationDetails(
+      _channelId,
+      _channelName,
+      channelDescription: '20-20-20 eye health reminders',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+    const details = NotificationDetails(android: androidDetails);
+
+    await _plugin.show(
+      _unlockResetNotificationId,
+      'Timer reset',
+      'Due to unlock, timer reset to 20:00.',
+      details,
+    );
   }
 
   @override

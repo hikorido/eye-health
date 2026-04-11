@@ -13,6 +13,7 @@ class FakeNotificationService implements AbstractNotificationService {
   @override Future<void> init() async {}
   @override Future<void> scheduleReminder(DateTime at) async {}
   @override Future<void> cancelReminder() async {}
+  @override Future<void> showUnlockResetMessage() async {}
   @override Future<void> showOngoingTimer(int sinceTimestamp) async {}
   @override Future<void> pauseOngoingTimer(int elapsedMs) async {}
   @override Future<void> cancelOngoingTimer() async {}

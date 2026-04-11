@@ -139,7 +139,11 @@ class TimerService extends ChangeNotifier {
 
   Future<void> onUnlock() async {
     if (_awaitingRestConfirmation) return;
+    final wasActive = _state.isActive;
     await _startOrResetSession(resetIfActive: true);
+    if (wasActive) {
+      await _notifications.showUnlockResetMessage();
+    }
   }
 
   void _startTicker() {

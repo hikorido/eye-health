@@ -39,6 +39,7 @@ void main() async {
       ? UnlockServiceIos(timerService: timer)
       : UnlockServiceAndroid(timerService: timer);
   unlockService.startListening();
+  await timer.onUnlock();
 
   final AbstractUsageStatsService usageStats = Platform.isIOS
       ? UsageStatsServiceIos()

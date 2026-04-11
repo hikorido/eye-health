@@ -78,6 +78,19 @@ class NotificationServiceIos implements AbstractNotificationService {
   }
 
   @override
+  Future<void> showUnlockResetMessage() async {
+    const darwinDetails = DarwinNotificationDetails();
+    const details = NotificationDetails(iOS: darwinDetails);
+
+    await _plugin.show(
+      3,
+      'Timer reset',
+      'Due to unlock, timer reset to 20:00.',
+      details,
+    );
+  }
+
+  @override
   Future<void> showOngoingTimer(int sinceTimestamp) async {}
 
   @override
