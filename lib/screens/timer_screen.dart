@@ -20,6 +20,7 @@ class TimerScreen extends StatelessWidget {
         listenable: timerService,
         builder: (context, _) {
           final isActive = timerService.state.isActive;
+          final isAwaitingRest = timerService.isAwaitingRestConfirmation;
           final remaining = timerService.remainingSeconds;
 
           return SingleChildScrollView(
@@ -38,7 +39,20 @@ class TimerScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   const _ReferenceNumbers(),
                   const SizedBox(height: 24),
-                  _HintText(isActive: isActive),
+                  _HintText(
+                    isActive: isActive,
+                    isAwaitingRest: isAwaitingRest,
+                  ),
+                  if (isAwaitingRest) ...[
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        await timerService.completeRest();
+                      },
+                      icon: const Icon(Icons.check_circle_outline),
+                      label: const Text('Already Rested'),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -120,14 +134,19 @@ class _RefItem extends StatelessWidget {
 
 class _HintText extends StatelessWidget {
   final bool isActive;
+  final bool isAwaitingRest;
 
-  const _HintText({required this.isActive});
+  const _HintText({required this.isActive, required this.isAwaitingRest});
 
   @override
   Widget build(BuildContext context) {
     String inactiveHint = Platform.isAndroid
         ? 'Unlock your phone to start a new 20-minute session.'
         : 'Open the app to start a new 20-minute session.';
+
+    if (isAwaitingRest) {
+      inactiveHint = 'Tap "Already Rested" to continue to a new 20-minute session.';
+    }
 
     return Text(
       isActive

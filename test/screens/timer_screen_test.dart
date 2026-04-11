@@ -106,6 +106,50 @@ void main() {
     fakeNotifications.dispose();
   });
 
+  testWidgets('shows "Already Rested" button when awaiting rest confirmation',
+      (tester) async {
+    final stale = DateTime.now()
+        .subtract(const Duration(minutes: 25))
+        .millisecondsSinceEpoch;
+    await prefs.setSessionStartTimestamp(stale);
+    timerService.dispose();
+    timerService = TimerService(
+      preferencesService: prefs,
+      notificationService: fakeNotifications,
+    );
+    await timerService.init();
+
+    await tester.pumpWidget(buildSubject());
+    await tester.pump();
+
+    expect(find.text('Already Rested'), findsOneWidget);
+    timerService.dispose();
+    fakeNotifications.dispose();
+  });
+
+  testWidgets('tapping "Already Rested" starts a new session',
+      (tester) async {
+    final stale = DateTime.now()
+        .subtract(const Duration(minutes: 25))
+        .millisecondsSinceEpoch;
+    await prefs.setSessionStartTimestamp(stale);
+    timerService.dispose();
+    timerService = TimerService(
+      preferencesService: prefs,
+      notificationService: fakeNotifications,
+    );
+    await timerService.init();
+
+    await tester.pumpWidget(buildSubject());
+    await tester.pump();
+    await tester.tap(find.text('Already Rested'));
+    await tester.pump();
+
+    expect(timerService.state.isActive, isTrue);
+    timerService.dispose();
+    fakeNotifications.dispose();
+  });
+
   testWidgets('countdown updates after one second tick', (tester) async {
     await timerService.startSession();
     await tester.pumpWidget(buildSubject());

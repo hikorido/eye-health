@@ -28,6 +28,7 @@ class TimerService extends ChangeNotifier {
         _notifications = notificationService;
 
   SessionState get state => _state;
+  bool get isAwaitingRestConfirmation => _awaitingRestConfirmation;
 
   int get remainingSeconds {
     if (!_state.isActive) return 0;
@@ -138,7 +139,10 @@ class TimerService extends ChangeNotifier {
   }
 
   Future<void> onUnlock() async {
-    if (_awaitingRestConfirmation) return;
+    if (_awaitingRestConfirmation) {
+      await completeRest();
+      return;
+    }
     final wasActive = _state.isActive;
     await _startOrResetSession(resetIfActive: true);
     if (wasActive) {

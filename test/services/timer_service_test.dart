@@ -187,7 +187,7 @@ void main() {
       expect(notifications.unlockResetMessageCalled, isTrue);
     });
 
-    test('does not restart session while awaiting done_resting after timeout',
+    test('unlock completes rest and starts session while awaiting done_resting',
         () async {
       final stale = DateTime.now()
           .subtract(const Duration(minutes: 25))
@@ -198,8 +198,8 @@ void main() {
 
       await timerService.onUnlock();
 
-      expect(timerService.state.isActive, isFalse);
-      expect(prefs.getSessionStartTimestamp(), isNull);
+      expect(timerService.state.isActive, isTrue);
+      expect(prefs.getSessionStartTimestamp(), isNotNull);
       expect(notifications.unlockResetMessageCalled, isFalse);
     });
 
